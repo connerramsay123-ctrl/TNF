@@ -2,130 +2,41 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="theme-color" content="#16241C" />
 <title>Tuesday Night League</title>
 <script>
-  const FIREBASE_URL = "https://tuesday-night-football-e56de-default-rtdb.europe-west1.firebasedatabase.app";
-  // Diagnostic error handler
-  window.addEventListener("error", function(event) {
-    window.__TNF_ERROR__ = {
-      type: "JavaScript error",
-      message: event.message || "Unknown error",
-      file: event.filename || "Unknown file",
-      line: event.lineno || "Unknown",
-      column: event.colno || "Unknown"
-    };
+  const FIREBASE_URL =
+    "https://tuesday-night-football-e56de-default-rtdb.europe-west1.firebasedatabase.app";
+  // Show a useful error instead of a completely blank screen.
+  window.addEventListener("error", function (event) {
+    console.error("TNF error:", event.error || event.message);
     const root = document.getElementById("root");
-    if (root && !root.innerHTML.trim()) {
-      root.innerHTML = `
-        <div style="
-          min-height:100vh;
-          background:#16241C;
-          color:#F3EFE3;
-          font-family:Arial,sans-serif;
-          padding:30px 20px;
-          box-sizing:border-box;
-        ">
-          <div style="max-width:500px;margin:40px auto;">
-            <div style="font-size:40px;margin-bottom:15px;">⚠️</div>
-            <h1 style="margin:0 0 10px;font-size:24px;">Dashboard error</h1>
-            <p style="color:#8FA391;font-size:14px;line-height:1.5;">
-              The dashboard couldn't start. Send the information below to the developer.
-            </p>
-            <div style="
-              background:#1E3327;
-              border:1px solid #A6432F;
-              border-radius:10px;
-              padding:15px;
-              margin-top:20px;
-              overflow-wrap:anywhere;
-            ">
-              <div style="color:#E8836A;font-size:12px;font-weight:bold;margin-bottom:8px;">
-                ERROR
-              </div>
-              <div style="
-                font-family:monospace;
-                font-size:12px;
-                line-height:1.6;
-                white-space:pre-wrap;
-              ">${escapeHtml(event.message || "Unknown error")}
-File: ${escapeHtml(event.filename || "Unknown")}
-Line: ${event.lineno || "Unknown"}
-Column: ${event.colno || "Unknown"}</div>
-            </div>
-            <button onclick="location.reload()" style="
-              margin-top:15px;
-              width:100%;
-              padding:12px;
-              border:0;
-              border-radius:8px;
-              background:#FF6B2C;
-              color:#16241C;
-              font-weight:bold;
-              font-size:14px;
-            ">
-              Reload dashboard
-            </button>
-          </div>
-        </div>
-      `;
+    if (
+      root &&
+      (!root.innerHTML.trim() ||
+       root.innerText.includes("Loading league"))
+    ) {
+      showError(
+        event.message || "Unknown JavaScript error",
+        event.filename,
+        event.lineno
+      );
     }
   });
-  window.addEventListener("unhandledrejection", function(event) {
-    const message =
-      event.reason?.message ||
-      String(event.reason || "Unknown promise error");
+  window.addEventListener("unhandledrejection", function (event) {
+    console.error("TNF promise error:", event.reason);
     const root = document.getElementById("root");
-    if (root && !root.innerHTML.trim()) {
-      root.innerHTML = `
-        <div style="
-          min-height:100vh;
-          background:#16241C;
-          color:#F3EFE3;
-          font-family:Arial,sans-serif;
-          padding:30px 20px;
-          box-sizing:border-box;
-        ">
-          <div style="max-width:500px;margin:40px auto;">
-            <div style="font-size:40px;margin-bottom:15px;">⚠️</div>
-            <h1 style="margin:0 0 10px;font-size:24px;">Dashboard error</h1>
-            <p style="color:#8FA391;font-size:14px;line-height:1.5;">
-              The dashboard encountered an error while loading.
-            </p>
-            <div style="
-              background:#1E3327;
-              border:1px solid #A6432F;
-              border-radius:10px;
-              padding:15px;
-              margin-top:20px;
-              overflow-wrap:anywhere;
-            ">
-              <div style="color:#E8836A;font-size:12px;font-weight:bold;margin-bottom:8px;">
-                ERROR
-              </div>
-              <div style="
-                font-family:monospace;
-                font-size:12px;
-                line-height:1.6;
-                white-space:pre-wrap;
-              ">${escapeHtml(message)}</div>
-            </div>
-            <button onclick="location.reload()" style="
-              margin-top:15px;
-              width:100%;
-              padding:12px;
-              border:0;
-              border-radius:8px;
-              background:#FF6B2C;
-              color:#16241C;
-              font-weight:bold;
-              font-size:14px;
-            ">
-              Reload dashboard
-            </button>
-          </div>
-        </div>
-      `;
+    if (
+      root &&
+      (!root.innerHTML.trim() ||
+       root.innerText.includes("Loading league"))
+    ) {
+      showError(
+        event.reason?.message ||
+        String(event.reason) ||
+        "Unknown error"
+      );
     }
   });
   function escapeHtml(value) {
@@ -136,25 +47,113 @@ Column: ${event.colno || "Unknown"}</div>
       .replace(/"/g, "&quot;")
       .replace(/'/g, "&#039;");
   }
+  function showError(message, file, line) {
+    const root = document.getElementById("root");
+    if (!root) return;
+    root.innerHTML = `
+      <div style="
+        min-height:100vh;
+        background:#16241C;
+        color:#F3EFE3;
+        font-family:Arial,sans-serif;
+        padding:30px 20px;
+        box-sizing:border-box;
+      ">
+        <div style="max-width:500px;margin:40px auto;">
+          <div style="font-size:40px;margin-bottom:15px;">⚠️</div>
+          <h1 style="margin:0 0 10px;font-size:24px;">
+            Dashboard error
+          </h1>
+          <p style="
+            color:#8FA391;
+            font-size:14px;
+            line-height:1.5;
+          ">
+            Something stopped the dashboard from loading.
+          </p>
+          <div style="
+            background:#1E3327;
+            border:1px solid #A6432F;
+            border-radius:10px;
+            padding:15px;
+            margin-top:20px;
+            overflow-wrap:anywhere;
+          ">
+            <div style="
+              color:#E8836A;
+              font-size:12px;
+              font-weight:bold;
+              margin-bottom:8px;
+            ">
+              ERROR
+            </div>
+            <div style="
+              font-family:monospace;
+              font-size:12px;
+              line-height:1.6;
+              white-space:pre-wrap;
+            ">${escapeHtml(message)}
+${file ? "File: " + escapeHtml(file) : ""}
+${line ? "Line: " + line : ""}</div>
+          </div>
+          <button
+            onclick="location.reload()"
+            style="
+              margin-top:15px;
+              width:100%;
+              padding:12px;
+              border:0;
+              border-radius:8px;
+              background:#FF6B2C;
+              color:#16241C;
+              font-weight:bold;
+              font-size:14px;
+            "
+          >
+            Reload dashboard
+          </button>
+        </div>
+      </div>
+    `;
+  }
 </script>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap">
+<link
+  rel="stylesheet"
+  href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap"
+/>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
 <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
 <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 <style>
+  html,
   body {
-    background:#16241C;
-    margin:0;
-    font-family:'Inter',sans-serif;
-    color:#F3EFE3;
+    margin: 0;
+    padding: 0;
+    min-height: 100%;
+    background: #16241C;
+  }
+  body {
+    font-family: 'Inter', sans-serif;
+    color: #F3EFE3;
+    -webkit-font-smoothing: antialiased;
   }
   .font-display {
-    font-family:'Bebas Neue',sans-serif;
-    letter-spacing:0.02em;
+    font-family: 'Bebas Neue', sans-serif;
+    letter-spacing: 0.02em;
   }
   .font-mono {
-    font-family:'JetBrains Mono',monospace;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  button,
+  input,
+  select {
+    -webkit-tap-highlight-color: transparent;
+  }
+  input,
+  select,
+  button {
+    font-family: inherit;
   }
 </style>
 </head>
@@ -174,50 +173,100 @@ Column: ${event.colno || "Unknown"}</div>
   </div>
 </div>
 <script type="text/babel" data-presets="react">
-const { useState, useEffect, useMemo, useCallback } = React;
+const {
+  useState,
+  useEffect,
+  useMemo,
+  useCallback
+} = React;
+/* =========================================================
+   FIREBASE
+   ========================================================= */
+function withTimeout(promise, ms = 8000) {
+  return Promise.race([
+    promise,
+    new Promise((_, reject) =>
+      setTimeout(
+        () => reject(new Error("Firebase request timed out")),
+        ms
+      )
+    )
+  ]);
+}
 async function fbGet(path, fallback) {
   try {
-    const res = await fetch(`${FIREBASE_URL}/${path}.json`);
-    if (!res.ok) {
-      throw new Error(`Firebase GET failed: HTTP ${res.status}`);
+    const response = await withTimeout(
+      fetch(`${FIREBASE_URL}/${path}.json`, {
+        cache: "no-store"
+      }),
+      8000
+    );
+    if (!response.ok) {
+      throw new Error(
+        `Firebase returned HTTP ${response.status}`
+      );
     }
-    const data = await res.json();
+    const data = await response.json();
+    // An empty Firebase path returns null.
+    // That is completely valid and should use the fallback.
     return data === null ? fallback : data;
   } catch (error) {
-    console.error(`Firebase read failed for ${path}:`, error);
+    console.error(
+      `Firebase read failed: ${path}`,
+      error
+    );
     return fallback;
   }
 }
 async function fbSet(path, value) {
   try {
-    const res = await fetch(`${FIREBASE_URL}/${path}.json`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(value),
-    });
-    if (!res.ok) {
+    const response = await withTimeout(
+      fetch(`${FIREBASE_URL}/${path}.json`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(value)
+      }),
+      8000
+    );
+    if (!response.ok) {
       return {
         ok: false,
-        message: `Firebase save failed: HTTP ${res.status}`
+        message:
+          `Firebase save failed: HTTP ${response.status}`
       };
     }
     return { ok: true };
-  } catch (e) {
+  } catch (error) {
     return {
       ok: false,
-      message: e?.message || String(e)
+      message:
+        error?.message ||
+        String(error)
     };
   }
 }
-const uid = () => Math.random().toString(36).slice(2, 10);
+/* =========================================================
+   HELPERS
+   ========================================================= */
+const uid = () =>
+  Math.random()
+    .toString(36)
+    .slice(2, 10);
 const todayStr = () =>
-  new Date().toISOString().slice(0, 10);
+  new Date()
+    .toISOString()
+    .slice(0, 10);
+/* =========================================================
+   STANDINGS
+   ========================================================= */
 function computeStandings(players, matches) {
   const stats = {};
-  players.forEach((p) => {
-    stats[p.id] = {
-      id: p.id,
-      name: p.name,
+  players.forEach((player) => {
+    stats[player.id] = {
+      id: player.id,
+      name: player.name,
       played: 0,
       wins: 0,
       draws: 0,
@@ -230,15 +279,19 @@ function computeStandings(players, matches) {
     };
   });
   const sorted = [...matches].sort(
-    (a, b) => a.date.localeCompare(b.date)
+    (a, b) =>
+      a.date.localeCompare(b.date)
   );
-  sorted.forEach((m) => {
+  sorted.forEach((match) => {
     const bibsWin =
-      m.bibsScore > m.nonBibsScore;
+      match.bibsScore >
+      match.nonBibsScore;
     const nonBibsWin =
-      m.nonBibsScore > m.bibsScore;
+      match.nonBibsScore >
+      match.bibsScore;
     const draw =
-      m.bibsScore === m.nonBibsScore;
+      match.bibsScore ===
+      match.nonBibsScore;
     const applyTeam = (
       ids,
       captainId,
@@ -246,60 +299,72 @@ function computeStandings(players, matches) {
       ga,
       won
     ) => {
-      ids.forEach((pid) => {
-        const s = stats[pid];
-        if (!s) return;
-        s.played += 1;
-        s.gf += gf;
-        s.ga += ga;
+      ids.forEach((playerId) => {
+        const stat =
+          stats[playerId];
+        if (!stat) return;
+        stat.played += 1;
+        stat.gf += gf;
+        stat.ga += ga;
         let result = "D";
         if (draw) {
-          s.draws += 1;
-          s.points += 1;
+          stat.draws += 1;
+          stat.points += 1;
           result = "D";
         } else if (won) {
-          s.wins += 1;
-          s.points += 3;
+          stat.wins += 1;
+          stat.points += 3;
           result = "W";
-          if (pid === captainId) {
-            s.captainWins += 1;
-            s.points += 1;
+          if (
+            playerId === captainId
+          ) {
+            stat.captainWins += 1;
+            stat.points += 1;
           }
         } else {
-          s.losses += 1;
+          stat.losses += 1;
           result = "L";
         }
-        s.form.push({
+        stat.form.push({
           result,
-          date: m.date,
-          id: m.id
+          date: match.date,
+          id: match.id
         });
       });
     };
     applyTeam(
-      m.bibsPlayers,
-      m.bibsCaptain,
-      m.bibsScore,
-      m.nonBibsScore,
+      match.bibsPlayers || [],
+      match.bibsCaptain,
+      Number(match.bibsScore) || 0,
+      Number(match.nonBibsScore) || 0,
       bibsWin
     );
     applyTeam(
-      m.nonBibsPlayers,
-      m.nonBibsCaptain,
-      m.nonBibsScore,
-      m.bibsScore,
+      match.nonBibsPlayers || [],
+      match.nonBibsCaptain,
+      Number(match.nonBibsScore) || 0,
+      Number(match.bibsScore) || 0,
       nonBibsWin
     );
   });
   return Object.values(stats)
-    .map((s) => ({
-      ...s,
-      gd: s.gf - s.ga,
+    .map((stat) => ({
+      ...stat,
+      gd:
+        stat.gf -
+        stat.ga,
       winRate:
-        s.played > 0
-          ? Math.round((s.wins / s.played) * 100)
+        stat.played > 0
+          ? Math.round(
+              (stat.wins /
+                stat.played) *
+                100
+            )
           : 0,
-      form: s.form.slice(-5).reverse()
+      form:
+        stat.form
+          .slice(-5)
+          .reverse()
     }))
     .sort(
       (a, b) =>
@@ -309,6 +374,9 @@ function computeStandings(players, matches) {
         a.name.localeCompare(b.name)
     );
 }
+/* =========================================================
+   SMALL COMPONENTS
+   ========================================================= */
 function FormChip({ result }) {
   const map = {
     W: { bg: "#3E8E5B" },
@@ -317,8 +385,17 @@ function FormChip({ result }) {
   };
   return (
     <span
-      style={{ background: map[result].bg }}
-      className="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold text-[#F3EFE3]"
+      style={{
+        background:
+          map[result]?.bg ||
+          "#8A8367"
+      }}
+      className="
+        w-5 h-5 rounded-full
+        flex items-center justify-center
+        text-[10px] font-bold
+        text-[#F3EFE3]
+      "
     >
       {result}
     </span>
@@ -330,440 +407,28 @@ function RankBadge({ rank }) {
     "#C9C9C9",
     "#B08655"
   ];
-  const bg =
+  const background =
     rank <= 3
       ? colors[rank - 1]
       : "#243527";
-  const fg =
+  const foreground =
     rank <= 3
       ? "#16241C"
       : "#8FA391";
   return (
     <div
       style={{
-        background: bg,
-        color: fg
+        background,
+        color: foreground
       }}
-      className="w-7 h-7 rounded-full flex items-center justify-center font-mono text-xs font-bold shrink-0"
+      className="
+        w-7 h-7 rounded-full
+        flex items-center justify-center
+        font-mono text-xs font-bold
+        shrink-0
+      "
     >
       {rank}
-    </div>
-  );
-}
-function App() {
-  const [players, setPlayers] = useState([]);
-  const [matches, setMatches] = useState([]);
-  const [passcode, setPasscode] = useState(null);
-  const [unlocked, setUnlocked] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [tab, setTab] = useState("table");
-  const [expandedRow, setExpandedRow] = useState(null);
-  const [saveError, setSaveError] = useState(null);
-  const [configError, setConfigError] = useState(false);
-  useEffect(() => {
-    if (
-      FIREBASE_URL.includes("PASTE_YOUR")
-    ) {
-      setConfigError(true);
-      setLoading(false);
-      return;
-    }
-    (async () => {
-      try {
-        const [p, m, pc] =
-          await Promise.all([
-            fbGet("players", []),
-            fbGet("matches", []),
-            fbGet("passcode", null)
-          ]);
-        setPlayers(
-          Array.isArray(p) ? p : []
-        );
-        setMatches(
-          Array.isArray(m) ? m : []
-        );
-        setPasscode(pc);
-      } catch (error) {
-        console.error(
-          "Dashboard startup error:",
-          error
-        );
-      } finally {
-        setLoading(false);
-      }
-    })();
-  }, []);
-  const persistPlayers =
-    useCallback(async (next) => {
-      setPlayers(next);
-      const res =
-        await fbSet("players", next);
-      setSaveError(
-        res.ok ? null : res.message
-      );
-    }, []);
-  const persistMatches =
-    useCallback(async (next) => {
-      setMatches(next);
-      const res =
-        await fbSet("matches", next);
-      setSaveError(
-        res.ok ? null : res.message
-      );
-    }, []);
-  const persistPasscode =
-    useCallback(async (next) => {
-      setPasscode(next);
-      const res =
-        await fbSet("passcode", next);
-      setSaveError(
-        res.ok ? null : res.message
-      );
-    }, []);
-  const standings =
-    useMemo(
-      () =>
-        computeStandings(
-          players,
-          matches
-        ),
-      [players, matches]
-    );
-  const stats =
-    useMemo(() => {
-      const played =
-        standings.filter(
-          (s) => s.played > 0
-        );
-      if (played.length === 0)
-        return null;
-      return {
-        topPoints:
-          [...played].sort(
-            (a, b) =>
-              b.points - a.points
-          )[0],
-        topWinRate:
-          [...played].sort(
-            (a, b) =>
-              b.winRate - a.winRate ||
-              b.played - a.played
-          )[0],
-        topCaptain:
-          [...played].sort(
-            (a, b) =>
-              b.captainWins -
-              a.captainWins
-          )[0],
-        topGd:
-          [...played].sort(
-            (a, b) =>
-              b.gd - a.gd
-          )[0]
-      };
-    }, [standings]);
-  if (configError) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-[#16241C] px-6 text-center">
-        <div>
-          <p className="text-[#FF6B2C] font-bold mb-2">
-            Setup needed
-          </p>
-          <p className="text-sm text-[#8FA391]">
-            Firebase database URL is missing.
-          </p>
-        </div>
-      </div>
-    );
-  }
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-[#16241C]">
-        <div className="text-[#8FA391] font-mono text-sm">
-          Loading league…
-        </div>
-      </div>
-    );
-  }
-  return (
-    <div
-      className="min-h-screen pb-24"
-      style={{
-        background: "#16241C",
-        backgroundImage:
-          "repeating-linear-gradient(to bottom, rgba(255,255,255,0.015) 0px, rgba(255,255,255,0.015) 40px, transparent 40px, transparent 80px)"
-      }}
-    >
-      <Header
-        playedCount={matches.length}
-        playerCount={players.length}
-      />
-      {saveError && (
-        <div className="max-w-md mx-auto px-4 mt-3">
-          <div
-            className="rounded-lg px-3 py-2 text-xs font-medium"
-            style={{
-              background:
-                "rgba(166,67,47,0.15)",
-              border:
-                "1px solid #A6432F",
-              color: "#E8836A"
-            }}
-          >
-            That last change didn't save.
-            <div className="mt-1 font-mono opacity-80">
-              {saveError}
-            </div>
-          </div>
-        </div>
-      )}
-      <main className="max-w-md mx-auto px-4 mt-4">
-        {tab === "table" && (
-          <TableTab
-            standings={standings}
-            expandedRow={expandedRow}
-            setExpandedRow={setExpandedRow}
-          />
-        )}
-        {tab === "stats" && (
-          <StatsTab
-            standings={standings}
-            stats={stats}
-          />
-        )}
-        {tab === "manage" &&
-          (
-            unlocked
-              ? (
-                <ManageTab
-                  players={players}
-                  matches={matches}
-                  persistPlayers={persistPlayers}
-                  persistMatches={persistMatches}
-                  passcode={passcode}
-                  persistPasscode={persistPasscode}
-                  onLock={() =>
-                    setUnlocked(false)
-                  }
-                />
-              )
-              : (
-                <PasscodeGate
-                  passcode={passcode}
-                  persistPasscode={persistPasscode}
-                  onUnlock={() =>
-                    setUnlocked(true)
-                  }
-                />
-              )
-          )}
-      </main>
-      <TabBar
-        tab={tab}
-        setTab={setTab}
-      />
-    </div>
-  );
-}
-function Header({
-  playedCount,
-  playerCount
-}) {
-  return (
-    <div
-      className="relative overflow-hidden px-5 pt-8 pb-5"
-      style={{
-        background:
-          "radial-gradient(circle at 50% 120%, rgba(255,107,44,0.12), transparent 60%)",
-        borderBottom:
-          "1px solid rgba(255,255,255,0.08)"
-      }}
-    >
-      <p className="text-[#FF6B2C] text-xs font-bold tracking-[0.2em] uppercase mb-1 font-mono">
-        Bibs vs Non-Bibs
-      </p>
-      <h1 className="text-4xl leading-none font-display">
-        Tuesday Night League
-      </h1>
-      <div className="flex gap-4 mt-3 text-xs text-[#8FA391] font-mono">
-        <span>{playerCount} players</span>
-        <span>·</span>
-        <span>{playedCount} games logged</span>
-      </div>
-    </div>
-  );
-}
-function TabBar({ tab, setTab }) {
-  const items = [
-    {
-      id: "table",
-      label: "Table",
-      icon: "🏆"
-    },
-    {
-      id: "stats",
-      label: "Stats",
-      icon: "📈"
-    },
-    {
-      id: "manage",
-      label: "Manage",
-      icon: "🎽"
-    }
-  ];
-  return (
-    <div
-      className="fixed bottom-0 left-0 right-0 border-t"
-      style={{
-        background: "#1B2B1F",
-        borderColor:
-          "rgba(255,255,255,0.08)"
-      }}
-    >
-      <div className="max-w-md mx-auto flex">
-        {items.map(
-          ({ id, label, icon }) => (
-            <button
-              key={id}
-              onClick={() =>
-                setTab(id)
-              }
-              className="flex-1 flex flex-col items-center gap-1 py-3"
-              style={{
-                color:
-                  tab === id
-                    ? "#FF6B2C"
-                    : "#8FA391"
-              }}
-            >
-              <span>{icon}</span>
-              <span className="text-[10px] font-bold uppercase tracking-wide">
-                {label}
-              </span>
-            </button>
-          )
-        )}
-      </div>
-    </div>
-  );
-}
-function TableTab({
-  standings,
-  expandedRow,
-  setExpandedRow
-}) {
-  if (standings.length === 0)
-    return (
-      <EmptyState text="Add players and log a match to see the table." />
-    );
-  return (
-    <div className="space-y-2">
-      <div className="flex justify-between text-[10px] uppercase tracking-widest text-[#8FA391] font-mono px-2 mb-1">
-        <span>Player</span>
-        <span>Pts</span>
-      </div>
-      {standings.map((s, i) => {
-        const rank = i + 1;
-        const open =
-          expandedRow === s.id;
-        return (
-          <div
-            key={s.id}
-            style={{
-              background: "#1E3327",
-              border:
-                "1px solid rgba(255,255,255,0.06)"
-            }}
-            className="rounded-xl overflow-hidden"
-          >
-            <button
-              className="w-full flex items-center gap-3 px-3 py-3 text-left"
-              onClick={() =>
-                setExpandedRow(
-                  open ? null : s.id
-                )
-              }
-            >
-              <RankBadge rank={rank} />
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-1.5">
-                  <span className="font-semibold truncate">
-                    {s.name}
-                  </span>
-                  {s.captainWins > 0 && (
-                    <span className="flex items-center gap-0.5 text-[#E8B94A] text-[10px] font-mono">
-                      👑{s.captainWins}
-                    </span>
-                  )}
-                </div>
-                <div className="flex gap-1 mt-1">
-                  {s.form.length > 0
-                    ? s.form.map(
-                        (f, idx) => (
-                          <FormChip
-                            key={idx}
-                            result={f.result}
-                          />
-                        )
-                      )
-                    : (
-                      <span className="text-[10px] text-[#8FA391] font-mono">
-                        no games yet
-                      </span>
-                    )}
-                </div>
-              </div>
-              <div
-                className="text-2xl leading-none font-display"
-                style={{
-                  color: "#FF6B2C"
-                }}
-              >
-                {s.points}
-              </div>
-              <span
-                className="text-[#8FA391]"
-                style={{
-                  transform:
-                    open
-                      ? "rotate(180deg)"
-                      : "none"
-                }}
-              >
-                ▾
-              </span>
-            </button>
-            {open && (
-              <div className="grid grid-cols-5 gap-1 px-3 pb-3 text-center font-mono text-xs">
-                <StatCell
-                  label="P"
-                  value={s.played}
-                />
-                <StatCell
-                  label="W"
-                  value={s.wins}
-                />
-                <StatCell
-                  label="D"
-                  value={s.draws}
-                />
-                <StatCell
-                  label="L"
-                  value={s.losses}
-                />
-                <StatCell
-                  label="GD"
-                  value={
-                    s.gd > 0
-                      ? `+${s.gd}`
-                      : s.gd
-                  }
-                />
-              </div>
-            )}
-          </div>
-        );
-      })}
     </div>
   );
 }
@@ -788,107 +453,6 @@ function StatCell({
     </div>
   );
 }
-function StatsTab({
-  standings,
-  stats
-}) {
-  if (!stats)
-    return (
-      <EmptyState text="Log a match to unlock stats." />
-    );
-  const top =
-    standings.slice(0, 8);
-  const maxPts =
-    Math.max(
-      ...top.map(
-        (s) => s.points
-      ),
-      1
-    );
-  return (
-    <div className="space-y-4">
-      <div className="grid grid-cols-2 gap-2">
-        <StatCard
-          icon="🏆"
-          label="Top of the table"
-          name={stats.topPoints.name}
-          value={`${stats.topPoints.points} pts`}
-          color="#E8B94A"
-        />
-        <StatCard
-          icon="📈"
-          label="Best win rate"
-          name={stats.topWinRate.name}
-          value={`${stats.topWinRate.winRate}%`}
-          color="#3E8E5B"
-        />
-        <StatCard
-          icon="👑"
-          label="Most captain wins"
-          name={stats.topCaptain.name}
-          value={`${stats.topCaptain.captainWins}`}
-          color="#FF6B2C"
-        />
-        <StatCard
-          icon="🎽"
-          label="Best goal diff"
-          name={stats.topGd.name}
-          value={
-            stats.topGd.gd > 0
-              ? `+${stats.topGd.gd}`
-              : stats.topGd.gd
-          }
-          color="#8FA391"
-        />
-      </div>
-      <div
-        style={{
-          background: "#1E3327",
-          border:
-            "1px solid rgba(255,255,255,0.06)"
-        }}
-        className="rounded-xl p-3"
-      >
-        <p className="text-[10px] uppercase tracking-widest text-[#8FA391] font-mono mb-3">
-          Points leaders
-        </p>
-        <div className="space-y-2">
-          {top.map((s, i) => (
-            <div
-              key={s.id}
-              className="flex items-center gap-2 text-xs"
-            >
-              <span className="w-16 truncate text-[#8FA391]">
-                {s.name}
-              </span>
-              <div
-                className="flex-1 h-3 rounded-full overflow-hidden"
-                style={{
-                  background: "#16241C"
-                }}
-              >
-                <div
-                  className="h-full rounded-full"
-                  style={{
-                    width:
-                      `${(s.points / maxPts) * 100}%`,
-                    background:
-                      i === 0
-                        ? "#FF6B2C"
-                        : "#3E5A44"
-                  }}
-                />
-              </div>
-              <span className="font-mono w-6 text-right">
-                {s.points}
-              </span>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
 function StatCard({
   icon,
   label,
@@ -906,14 +470,30 @@ function StatCard({
       className="rounded-xl p-3"
     >
       <span>{icon}</span>
-      <p className="text-[9px] uppercase tracking-wide text-[#8FA391] font-mono mt-2">
+      <p className="
+        text-[9px]
+        uppercase
+        tracking-wide
+        text-[#8FA391]
+        font-mono
+        mt-2
+      ">
         {label}
       </p>
-      <p className="font-semibold text-sm mt-0.5 truncate">
+      <p className="
+        font-semibold
+        text-sm
+        mt-0.5
+        truncate
+      ">
         {name}
       </p>
       <p
-        className="text-xl mt-0.5 font-display"
+        className="
+          text-xl
+          mt-0.5
+          font-display
+        "
         style={{ color }}
       >
         {value}
@@ -923,8 +503,16 @@ function StatCard({
 }
 function EmptyState({ text }) {
   return (
-    <div className="text-center py-16 text-[#8FA391]">
-      <p className="text-2xl mb-3 opacity-50">
+    <div className="
+      text-center
+      py-16
+      text-[#8FA391]
+    ">
+      <p className="
+        text-2xl
+        mb-3
+        opacity-50
+      ">
         🎽
       </p>
       <p className="text-sm">
@@ -933,12 +521,953 @@ function EmptyState({ text }) {
     </div>
   );
 }
+/* =========================================================
+   APP
+   ========================================================= */
+function App() {
+  const [players, setPlayers] =
+    useState([]);
+  const [matches, setMatches] =
+    useState([]);
+  const [passcode, setPasscode] =
+    useState(null);
+  const [unlocked, setUnlocked] =
+    useState(false);
+  const [loading, setLoading] =
+    useState(true);
+  const [tab, setTab] =
+    useState("table");
+  const [expandedRow, setExpandedRow] =
+    useState(null);
+  const [saveError, setSaveError] =
+    useState(null);
+  const [firebaseError, setFirebaseError] =
+    useState(null);
+  /* -------------------------------------------------------
+     LOAD FIREBASE
+     ------------------------------------------------------- */
+  useEffect(() => {
+    let cancelled = false;
+    async function loadData() {
+      try {
+        /*
+         * Use separate requests rather than Promise.all.
+         * This means an empty/missing Firebase path cannot
+         * prevent the rest of the application loading.
+         */
+        const playersData =
+          await fbGet(
+            "players",
+            []
+          );
+        const matchesData =
+          await fbGet(
+            "matches",
+            []
+          );
+        const passcodeData =
+          await fbGet(
+            "passcode",
+            null
+          );
+        if (cancelled) return;
+        setPlayers(
+          Array.isArray(playersData)
+            ? playersData
+            : []
+        );
+        setMatches(
+          Array.isArray(matchesData)
+            ? matchesData
+            : []
+        );
+        setPasscode(
+          passcodeData || null
+        );
+      } catch (error) {
+        console.error(
+          "Dashboard loading error:",
+          error
+        );
+        if (!cancelled) {
+          setFirebaseError(
+            error?.message ||
+            String(error)
+          );
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      }
+    }
+    loadData();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+  /* -------------------------------------------------------
+     SAVE PLAYERS
+     ------------------------------------------------------- */
+  const persistPlayers =
+    useCallback(
+      async (next) => {
+        setPlayers(next);
+        const result =
+          await fbSet(
+            "players",
+            next
+          );
+        setSaveError(
+          result.ok
+            ? null
+            : result.message
+        );
+      },
+      []
+    );
+  /* -------------------------------------------------------
+     SAVE MATCHES
+     ------------------------------------------------------- */
+  const persistMatches =
+    useCallback(
+      async (next) => {
+        setMatches(next);
+        const result =
+          await fbSet(
+            "matches",
+            next
+          );
+        setSaveError(
+          result.ok
+            ? null
+            : result.message
+        );
+      },
+      []
+    );
+  /* -------------------------------------------------------
+     SAVE PASSCODE
+     ------------------------------------------------------- */
+  const persistPasscode =
+    useCallback(
+      async (next) => {
+        setPasscode(next);
+        const result =
+          await fbSet(
+            "passcode",
+            next
+          );
+        setSaveError(
+          result.ok
+            ? null
+            : result.message
+        );
+      },
+      []
+    );
+  const standings =
+    useMemo(
+      () =>
+        computeStandings(
+          players,
+          matches
+        ),
+      [players, matches]
+    );
+  const stats =
+    useMemo(() => {
+      const played =
+        standings.filter(
+          (s) => s.played > 0
+        );
+      if (
+        played.length === 0
+      ) {
+        return null;
+      }
+      return {
+        topPoints:
+          [...played].sort(
+            (a, b) =>
+              b.points -
+              a.points
+          )[0],
+        topWinRate:
+          [...played].sort(
+            (a, b) =>
+              b.winRate -
+                a.winRate ||
+              b.played -
+                a.played
+          )[0],
+        topCaptain:
+          [...played].sort(
+            (a, b) =>
+              b.captainWins -
+              a.captainWins
+          )[0],
+        topGd:
+          [...played].sort(
+            (a, b) =>
+              b.gd -
+              a.gd
+          )[0]
+      };
+    }, [standings]);
+  /* -------------------------------------------------------
+     LOADING
+     ------------------------------------------------------- */
+  if (loading) {
+    return (
+      <div
+        className="
+          min-h-screen
+          flex
+          items-center
+          justify-center
+        "
+        style={{
+          background: "#16241C"
+        }}
+      >
+        <div className="
+          text-[#8FA391]
+          font-mono
+          text-sm
+        ">
+          Loading league…
+        </div>
+      </div>
+    );
+  }
+  /* -------------------------------------------------------
+     FIREBASE ERROR
+     ------------------------------------------------------- */
+  if (firebaseError) {
+    return (
+      <div
+        className="
+          min-h-screen
+          flex
+          items-center
+          justify-center
+          px-6
+          text-center
+        "
+        style={{
+          background: "#16241C"
+        }}
+      >
+        <div className="max-w-sm">
+          <div className="text-4xl mb-4">
+            ⚠️
+          </div>
+          <h1 className="
+            text-xl
+            font-semibold
+            mb-2
+          ">
+            Couldn't load the league
+          </h1>
+          <p className="
+            text-sm
+            text-[#8FA391]
+            mb-4
+          ">
+            Firebase returned an error.
+          </p>
+          <div
+            className="
+              rounded-lg
+              p-3
+              text-left
+              text-xs
+              font-mono
+              break-words
+            "
+            style={{
+              background: "#1E3327",
+              border:
+                "1px solid #A6432F",
+              color: "#E8836A"
+            }}
+          >
+            {firebaseError}
+          </div>
+          <button
+            onClick={() =>
+              location.reload()
+            }
+            className="
+              w-full
+              rounded-lg
+              py-3
+              mt-4
+              text-sm
+              font-bold
+            "
+            style={{
+              background: "#FF6B2C",
+              color: "#16241C"
+            }}
+          >
+            Try again
+          </button>
+        </div>
+      </div>
+    );
+  }
+  /* -------------------------------------------------------
+     MAIN UI
+     ------------------------------------------------------- */
+  return (
+    <div
+      className="min-h-screen pb-24"
+      style={{
+        background: "#16241C",
+        backgroundImage:
+          "repeating-linear-gradient(to bottom, rgba(255,255,255,0.015) 0px, rgba(255,255,255,0.015) 40px, transparent 40px, transparent 80px)"
+      }}
+    >
+      <Header
+        playedCount={
+          matches.length
+        }
+        playerCount={
+          players.length
+        }
+      />
+      {saveError && (
+        <div className="
+          max-w-md
+          mx-auto
+          px-4
+          mt-3
+        ">
+          <div
+            className="
+              rounded-lg
+              px-3
+              py-2
+              text-xs
+              font-medium
+            "
+            style={{
+              background:
+                "rgba(166,67,47,0.15)",
+              border:
+                "1px solid #A6432F",
+              color: "#E8836A"
+            }}
+          >
+            That last change didn't save.
+            <div className="
+              mt-1
+              font-mono
+              opacity-80
+            ">
+              {saveError}
+            </div>
+          </div>
+        </div>
+      )}
+      <main className="
+        max-w-md
+        mx-auto
+        px-4
+        mt-4
+      ">
+        {tab === "table" && (
+          <TableTab
+            standings={standings}
+            expandedRow={expandedRow}
+            setExpandedRow={
+              setExpandedRow
+            }
+          />
+        )}
+        {tab === "stats" && (
+          <StatsTab
+            standings={standings}
+            stats={stats}
+          />
+        )}
+        {tab === "manage" && (
+          unlocked ? (
+            <ManageTab
+              players={players}
+              matches={matches}
+              persistPlayers={
+                persistPlayers
+              }
+              persistMatches={
+                persistMatches
+              }
+              passcode={passcode}
+              persistPasscode={
+                persistPasscode
+              }
+              onLock={() =>
+                setUnlocked(false)
+              }
+            />
+          ) : (
+            <PasscodeGate
+              passcode={passcode}
+              persistPasscode={
+                persistPasscode
+              }
+              onUnlock={() =>
+                setUnlocked(true)
+              }
+            />
+          )
+        )}
+      </main>
+      <TabBar
+        tab={tab}
+        setTab={setTab}
+      />
+    </div>
+  );
+}
+/* =========================================================
+   HEADER
+   ========================================================= */
+function Header({
+  playedCount,
+  playerCount
+}) {
+  return (
+    <div
+      className="
+        relative
+        overflow-hidden
+        px-5
+        pt-8
+        pb-5
+      "
+      style={{
+        background:
+          "radial-gradient(circle at 50% 120%, rgba(255,107,44,0.12), transparent 60%)",
+        borderBottom:
+          "1px solid rgba(255,255,255,0.08)"
+      }}
+    >
+      <p className="
+        text-[#FF6B2C]
+        text-xs
+        font-bold
+        tracking-[0.2em]
+        uppercase
+        mb-1
+        font-mono
+      ">
+        Bibs vs Non-Bibs
+      </p>
+      <h1 className="
+        text-4xl
+        leading-none
+        font-display
+      ">
+        Tuesday Night League
+      </h1>
+      <div className="
+        flex
+        gap-4
+        mt-3
+        text-xs
+        text-[#8FA391]
+        font-mono
+      ">
+        <span>
+          {playerCount} players
+        </span>
+        <span>·</span>
+        <span>
+          {playedCount} games logged
+        </span>
+      </div>
+    </div>
+  );
+}
+/* =========================================================
+   TAB BAR
+   ========================================================= */
+function TabBar({
+  tab,
+  setTab
+}) {
+  const items = [
+    {
+      id: "table",
+      label: "Table",
+      icon: "🏆"
+    },
+    {
+      id: "stats",
+      label: "Stats",
+      icon: "📈"
+    },
+    {
+      id: "manage",
+      label: "Manage",
+      icon: "🎽"
+    }
+  ];
+  return (
+    <div
+      className="
+        fixed
+        bottom-0
+        left-0
+        right-0
+        border-t
+      "
+      style={{
+        background: "#1B2B1F",
+        borderColor:
+          "rgba(255,255,255,0.08)",
+        paddingBottom:
+          "env(safe-area-inset-bottom)"
+      }}
+    >
+      <div className="
+        max-w-md
+        mx-auto
+        flex
+      ">
+        {items.map(
+          ({
+            id,
+            label,
+            icon
+          }) => (
+            <button
+              key={id}
+              onClick={() =>
+                setTab(id)
+              }
+              className="
+                flex-1
+                flex
+                flex-col
+                items-center
+                gap-1
+                py-3
+              "
+              style={{
+                color:
+                  tab === id
+                    ? "#FF6B2C"
+                    : "#8FA391"
+              }}
+            >
+              <span>
+                {icon}
+              </span>
+              <span className="
+                text-[10px]
+                font-bold
+                uppercase
+                tracking-wide
+              ">
+                {label}
+              </span>
+            </button>
+          )
+        )}
+      </div>
+    </div>
+  );
+}
+/* =========================================================
+   TABLE
+   ========================================================= */
+function TableTab({
+  standings,
+  expandedRow,
+  setExpandedRow
+}) {
+  if (
+    standings.length === 0
+  ) {
+    return (
+      <EmptyState
+        text="
+          Add players and log a match
+          to see the table.
+        "
+      />
+    );
+  }
+  return (
+    <div className="space-y-2">
+      <div className="
+        flex
+        justify-between
+        text-[10px]
+        uppercase
+        tracking-widest
+        text-[#8FA391]
+        font-mono
+        px-2
+        mb-1
+      ">
+        <span>
+          Player
+        </span>
+        <span>
+          Pts
+        </span>
+      </div>
+      {standings.map(
+        (stat, index) => {
+          const rank =
+            index + 1;
+          const open =
+            expandedRow ===
+            stat.id;
+          return (
+            <div
+              key={stat.id}
+              style={{
+                background: "#1E3327",
+                border:
+                  "1px solid rgba(255,255,255,0.06)"
+              }}
+              className="
+                rounded-xl
+                overflow-hidden
+              "
+            >
+              <button
+                className="
+                  w-full
+                  flex
+                  items-center
+                  gap-3
+                  px-3
+                  py-3
+                  text-left
+                "
+                onClick={() =>
+                  setExpandedRow(
+                    open
+                      ? null
+                      : stat.id
+                  )
+                }
+              >
+                <RankBadge
+                  rank={rank}
+                />
+                <div className="
+                  flex-1
+                  min-w-0
+                ">
+                  <div className="
+                    flex
+                    items-center
+                    gap-1.5
+                  ">
+                    <span className="
+                      font-semibold
+                      truncate
+                    ">
+                      {stat.name}
+                    </span>
+                    {stat.captainWins >
+                      0 && (
+                      <span className="
+                        flex
+                        items-center
+                        gap-0.5
+                        text-[#E8B94A]
+                        text-[10px]
+                        font-mono
+                      ">
+                        👑
+                        {stat.captainWins}
+                      </span>
+                    )}
+                  </div>
+                  <div className="
+                    flex
+                    gap-1
+                    mt-1
+                  ">
+                    {stat.form.length > 0
+                      ? stat.form.map(
+                          (form, index) => (
+                            <FormChip
+                              key={index}
+                              result={
+                                form.result
+                              }
+                            />
+                          )
+                        )
+                      : (
+                        <span className="
+                          text-[10px]
+                          text-[#8FA391]
+                          font-mono
+                        ">
+                          no games yet
+                        </span>
+                      )}
+                  </div>
+                </div>
+                <div
+                  className="
+                    text-2xl
+                    leading-none
+                    font-display
+                  "
+                  style={{
+                    color: "#FF6B2C"
+                  }}
+                >
+                  {stat.points}
+                </div>
+                <span
+                  className="
+                    text-[#8FA391]
+                  "
+                  style={{
+                    transform:
+                      open
+                        ? "rotate(180deg)"
+                        : "none"
+                  }}
+                >
+                  ▾
+                </span>
+              </button>
+              {open && (
+                <div className="
+                  grid
+                  grid-cols-5
+                  gap-1
+                  px-3
+                  pb-3
+                  text-center
+                  font-mono
+                  text-xs
+                ">
+                  <StatCell
+                    label="P"
+                    value={
+                      stat.played
+                    }
+                  />
+                  <StatCell
+                    label="W"
+                    value={
+                      stat.wins
+                    }
+                  />
+                  <StatCell
+                    label="D"
+                    value={
+                      stat.draws
+                    }
+                  />
+                  <StatCell
+                    label="L"
+                    value={
+                      stat.losses
+                    }
+                  />
+                  <StatCell
+                    label="GD"
+                    value={
+                      stat.gd > 0
+                        ? `+${stat.gd}`
+                        : stat.gd
+                    }
+                  />
+                </div>
+              )}
+            </div>
+          );
+        }
+      )}
+    </div>
+  );
+}
+/* =========================================================
+   STATS
+   ========================================================= */
+function StatsTab({
+  standings,
+  stats
+}) {
+  if (!stats) {
+    return (
+      <EmptyState
+        text="Log a match to unlock stats."
+      />
+    );
+  }
+  const top =
+    standings.slice(0, 8);
+  const maxPts =
+    Math.max(
+      ...top.map(
+        (stat) =>
+          stat.points
+      ),
+      1
+    );
+  return (
+    <div className="space-y-4">
+      <div className="
+        grid
+        grid-cols-2
+        gap-2
+      ">
+        <StatCard
+          icon="🏆"
+          label="Top of the table"
+          name={
+            stats.topPoints.name
+          }
+          value={
+            `${stats.topPoints.points} pts`
+          }
+          color="#E8B94A"
+        />
+        <StatCard
+          icon="📈"
+          label="Best win rate"
+          name={
+            stats.topWinRate.name
+          }
+          value={
+            `${stats.topWinRate.winRate}%`
+          }
+          color="#3E8E5B"
+        />
+        <StatCard
+          icon="👑"
+          label="Most captain wins"
+          name={
+            stats.topCaptain.name
+          }
+          value={
+            `${stats.topCaptain.captainWins}`
+          }
+          color="#FF6B2C"
+        />
+        <StatCard
+          icon="🎽"
+          label="Best goal diff"
+          name={
+            stats.topGd.name
+          }
+          value={
+            stats.topGd.gd > 0
+              ? `+${stats.topGd.gd}`
+              : stats.topGd.gd
+          }
+          color="#8FA391"
+        />
+      </div>
+      <div
+        style={{
+          background: "#1E3327",
+          border:
+            "1px solid rgba(255,255,255,0.06)"
+        }}
+        className="
+          rounded-xl
+          p-3
+        "
+      >
+        <p className="
+          text-[10px]
+          uppercase
+          tracking-widest
+          text-[#8FA391]
+          font-mono
+          mb-3
+        ">
+          Points leaders
+        </p>
+        <div className="space-y-2">
+          {top.map(
+            (stat, index) => (
+              <div
+                key={stat.id}
+                className="
+                  flex
+                  items-center
+                  gap-2
+                  text-xs
+                "
+              >
+                <span className="
+                  w-16
+                  truncate
+                  text-[#8FA391]
+                ">
+                  {stat.name}
+                </span>
+                <div
+                  className="
+                    flex-1
+                    h-3
+                    rounded-full
+                    overflow-hidden
+                  "
+                  style={{
+                    background:
+                      "#16241C"
+                  }}
+                >
+                  <div
+                    className="
+                      h-full
+                      rounded-full
+                    "
+                    style={{
+                      width:
+                        `${(stat.points / maxPts) * 100}%`,
+                      background:
+                        index === 0
+                          ? "#FF6B2C"
+                          : "#3E5A44"
+                    }}
+                  />
+                </div>
+                <span className="
+                  font-mono
+                  w-6
+                  text-right
+                ">
+                  {stat.points}
+                </span>
+              </div>
+            )
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+/* =========================================================
+   PASSCODE
+   ========================================================= */
 function PasscodeGate({
   passcode,
   persistPasscode,
   onUnlock
 }) {
-  const isSetup = !passcode;
+  const isSetup =
+    !passcode;
   const [value, setValue] =
     useState("");
   const [confirmValue, setConfirmValue] =
@@ -948,60 +1477,117 @@ function PasscodeGate({
   const submit = () => {
     setError("");
     if (isSetup) {
-      if (value.length < 4)
+      if (
+        value.length < 4
+      ) {
         return setError(
           "Use at least 4 characters."
         );
-      if (value !== confirmValue)
+      }
+      if (
+        value !== confirmValue
+      ) {
         return setError(
           "Passcodes don't match."
         );
-      persistPasscode(value);
+      }
+      persistPasscode(
+        value
+      );
       onUnlock();
     } else {
-      if (value === passcode)
+      if (
+        value === passcode
+      ) {
         onUnlock();
-      else
-        setError("Wrong passcode.");
+      } else {
+        setError(
+          "Wrong passcode."
+        );
+      }
     }
   };
   return (
-    <div className="py-10 text-center">
+    <div className="
+      py-10
+      text-center
+    ">
       <div
-        className="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4 text-xl"
+        className="
+          w-14
+          h-14
+          rounded-full
+          flex
+          items-center
+          justify-center
+          mx-auto
+          mb-4
+          text-xl
+        "
         style={{
           background: "#1E3327",
           border:
             "1px solid rgba(255,255,255,0.08)"
         }}
       >
-        {isSetup ? "🔑" : "🔒"}
+        {isSetup
+          ? "🔑"
+          : "🔒"}
       </div>
-      <h2 className="font-semibold mb-1">
+      <h2 className="
+        font-semibold
+        mb-1
+      ">
         {isSetup
           ? "Set a manager passcode"
           : "Manager access"}
       </h2>
-      <p className="text-xs text-[#8FA391] mb-5 px-6">
+      <p className="
+        text-xs
+        text-[#8FA391]
+        mb-5
+        px-6
+      ">
         {isSetup
           ? "Anyone with this passcode can add players, log matches, and edit history."
           : "Enter the passcode to add matches or edit players."}
       </p>
-      <div className="max-w-[240px] mx-auto space-y-2">
+      <div className="
+        max-w-[240px]
+        mx-auto
+        space-y-2
+      ">
         <input
           type="password"
           autoFocus
           value={value}
-          onChange={(e) =>
-            setValue(e.target.value)
+          onChange={(event) =>
+            setValue(
+              event.target.value
+            )
           }
-          onKeyDown={(e) =>
-            e.key === "Enter" &&
-            !isSetup &&
-            submit()
-          }
+          onKeyDown={(event) => {
+            if (
+              event.key === "Enter"
+            ) {
+              if (isSetup) {
+                submit();
+              } else {
+                submit();
+              }
+            }
+          }}
           placeholder="Passcode"
-          className="w-full rounded-lg px-3 py-2.5 text-sm text-center outline-none tracking-widest"
+          className="
+            w-full
+            rounded-lg
+            px-3
+            py-2.5
+            text-sm
+            text-center
+            outline-none
+            tracking-widest
+          "
           style={{
             background: "#1E3327",
             border:
@@ -1013,36 +1599,60 @@ function PasscodeGate({
           <input
             type="password"
             value={confirmValue}
-            onChange={(e) =>
+            onChange={(event) =>
               setConfirmValue(
-                e.target.value
+                event.target.value
               )
             }
-            onKeyDown={(e) =>
-              e.key === "Enter" &&
+            onKeyDown={(event) =>
+              event.key ===
+                "Enter" &&
               submit()
             }
             placeholder="Confirm passcode"
-            className="w-full rounded-lg px-3 py-2.5 text-sm text-center outline-none tracking-widest"
+            className="
+              w-full
+              rounded-lg
+              px-3
+              py-2.5
+              text-sm
+              text-center
+              outline-none
+              tracking-widest
+            "
             style={{
-              background: "#1E3327",
+              background:
+                "#1E3327",
               border:
                 "1px solid rgba(255,255,255,0.1)",
-              color: "#F3EFE3"
+              color:
+                "#F3EFE3"
             }}
           />
         )}
         {error && (
-          <p className="text-[#E8836A] text-xs">
+          <p className="
+            text-[#E8836A]
+            text-xs
+          ">
             {error}
           </p>
         )}
         <button
           onClick={submit}
-          className="w-full rounded-lg py-2.5 text-sm font-bold mt-1"
+          className="
+            w-full
+            rounded-lg
+            py-2.5
+            text-sm
+            font-bold
+            mt-1
+          "
           style={{
-            background: "#FF6B2C",
-            color: "#16241C"
+            background:
+              "#FF6B2C",
+            color:
+              "#16241C"
           }}
         >
           {isSetup
@@ -1053,6 +1663,9 @@ function PasscodeGate({
     </div>
   );
 }
+/* =========================================================
+   MANAGE
+   ========================================================= */
 function ManageTab({
   players,
   matches,
@@ -1068,11 +1681,22 @@ function ManageTab({
     useState(false);
   return (
     <div className="space-y-3">
-      <div className="flex items-center justify-between">
+      <div className="
+        flex
+        items-center
+        justify-between
+      ">
         <div
-          className="flex gap-1 rounded-lg p-1 flex-1"
+          className="
+            flex
+            gap-1
+            rounded-lg
+            p-1
+            flex-1
+          "
           style={{
-            background: "#1B2B1F"
+            background:
+              "#1B2B1F"
           }}
         >
           {[
@@ -1088,34 +1712,61 @@ function ManageTab({
               id: "history",
               label: "History"
             }
-          ].map((s) => (
-            <button
-              key={s.id}
-              onClick={() =>
-                setSection(s.id)
-              }
-              className="flex-1 text-xs font-semibold py-2 rounded-md"
-              style={{
-                background:
-                  section === s.id
-                    ? "#FF6B2C"
-                    : "transparent",
-                color:
-                  section === s.id
-                    ? "#16241C"
-                    : "#8FA391"
-              }}
-            >
-              {s.label}
-            </button>
-          ))}
+          ].map(
+            (sectionItem) => (
+              <button
+                key={
+                  sectionItem.id
+                }
+                onClick={() =>
+                  setSection(
+                    sectionItem.id
+                  )
+                }
+                className="
+                  flex-1
+                  text-xs
+                  font-semibold
+                  py-2
+                  rounded-md
+                "
+                style={{
+                  background:
+                    section ===
+                    sectionItem.id
+                      ? "#FF6B2C"
+                      : "transparent",
+                  color:
+                    section ===
+                    sectionItem.id
+                      ? "#16241C"
+                      : "#8FA391"
+                }}
+              >
+                {
+                  sectionItem.label
+                }
+              </button>
+            )
+          )}
         </div>
         <button
           onClick={onLock}
-          className="ml-2 w-9 h-9 rounded-lg flex items-center justify-center shrink-0"
+          className="
+            ml-2
+            w-9
+            h-9
+            rounded-lg
+            flex
+            items-center
+            justify-center
+            shrink-0
+          "
           style={{
-            background: "#1B2B1F",
-            color: "#8FA391"
+            background:
+              "#1B2B1F",
+            color:
+              "#8FA391"
           }}
         >
           🔒
@@ -1125,13 +1776,21 @@ function ManageTab({
         <>
           <PlayersSection
             players={players}
-            persistPlayers={persistPlayers}
+            persistPlayers={
+              persistPlayers
+            }
           />
           <ChangePasscode
             passcode={passcode}
-            persistPasscode={persistPasscode}
-            changing={changingCode}
-            setChanging={setChangingCode}
+            persistPasscode={
+              persistPasscode
+            }
+            changing={
+              changingCode
+            }
+            setChanging={
+              setChangingCode
+            }
           />
         </>
       )}
@@ -1139,19 +1798,26 @@ function ManageTab({
         <LogMatchSection
           players={players}
           matches={matches}
-          persistMatches={persistMatches}
+          persistMatches={
+            persistMatches
+          }
         />
       )}
       {section === "history" && (
         <HistorySection
           players={players}
           matches={matches}
-          persistMatches={persistMatches}
+          persistMatches={
+            persistMatches
+          }
         />
       )}
     </div>
   );
 }
+/* =========================================================
+   CHANGE PASSCODE
+   ========================================================= */
 function ChangePasscode({
   passcode,
   persistPasscode,
@@ -1166,30 +1832,43 @@ function ChangePasscode({
     useState("");
   const submit = () => {
     setError("");
-    if (current !== passcode)
+    if (
+      current !== passcode
+    ) {
       return setError(
         "Current passcode is wrong."
       );
-    if (next.length < 4)
+    }
+    if (
+      next.length < 4
+    ) {
       return setError(
         "New passcode needs at least 4 characters."
       );
+    }
     persistPasscode(next);
     setCurrent("");
     setNext("");
     setChanging(false);
   };
-  if (!changing)
+  if (!changing) {
     return (
       <button
         onClick={() =>
           setChanging(true)
         }
-        className="text-[10px] text-[#8FA391] font-mono underline pt-1"
+        className="
+          text-[10px]
+          text-[#8FA391]
+          font-mono
+          underline
+          pt-1
+        "
       >
         Change manager passcode
       </button>
     );
+  }
   return (
     <div
       style={{
@@ -1197,53 +1876,99 @@ function ChangePasscode({
         border:
           "1px solid rgba(255,255,255,0.06)"
       }}
-      className="rounded-xl p-3 space-y-2"
+      className="
+        rounded-xl
+        p-3
+        space-y-2
+      "
     >
-      <p className="text-[10px] uppercase tracking-widest text-[#8FA391] font-mono">
+      <p className="
+        text-[10px]
+        uppercase
+        tracking-widest
+        text-[#8FA391]
+        font-mono
+      ">
         Change passcode
       </p>
       <input
         type="password"
         placeholder="Current passcode"
         value={current}
-        onChange={(e) =>
-          setCurrent(e.target.value)
+        onChange={(event) =>
+          setCurrent(
+            event.target.value
+          )
         }
-        className="w-full rounded-lg px-3 py-2 text-sm outline-none"
+        className="
+          w-full
+          rounded-lg
+          px-3
+          py-2
+          text-sm
+          outline-none
+        "
         style={{
-          background: "#16241C",
+          background:
+            "#16241C",
           border:
             "1px solid rgba(255,255,255,0.08)",
-          color: "#F3EFE3"
+          color:
+            "#F3EFE3"
         }}
       />
       <input
         type="password"
         placeholder="New passcode"
         value={next}
-        onChange={(e) =>
-          setNext(e.target.value)
+        onChange={(event) =>
+          setNext(
+            event.target.value
+          )
         }
-        className="w-full rounded-lg px-3 py-2 text-sm outline-none"
+        className="
+          w-full
+          rounded-lg
+          px-3
+          py-2
+          text-sm
+          outline-none
+        "
         style={{
-          background: "#16241C",
+          background:
+            "#16241C",
           border:
             "1px solid rgba(255,255,255,0.08)",
-          color: "#F3EFE3"
+          color:
+            "#F3EFE3"
         }}
       />
       {error && (
-        <p className="text-[#E8836A] text-xs">
+        <p className="
+          text-[#E8836A]
+          text-xs
+        ">
           {error}
         </p>
       )}
-      <div className="flex gap-2">
+      <div className="
+        flex
+        gap-2
+      ">
         <button
           onClick={submit}
-          className="flex-1 rounded-lg py-2 text-xs font-bold"
+          className="
+            flex-1
+            rounded-lg
+            py-2
+            text-xs
+            font-bold
+          "
           style={{
-            background: "#FF6B2C",
-            color: "#16241C"
+            background:
+              "#FF6B2C",
+            color:
+              "#16241C"
           }}
         >
           Save
@@ -1253,10 +1978,18 @@ function ChangePasscode({
             setChanging(false);
             setError("");
           }}
-          className="flex-1 rounded-lg py-2 text-xs font-bold"
+          className="
+            flex-1
+            rounded-lg
+            py-2
+            text-xs
+            font-bold
+          "
           style={{
-            background: "#16241C",
-            color: "#8FA391"
+            background:
+              "#16241C",
+            color:
+              "#8FA391"
           }}
         >
           Cancel
@@ -1265,6 +1998,9 @@ function ChangePasscode({
     </div>
   );
 }
+/* =========================================================
+   PLAYERS
+   ========================================================= */
 function PlayersSection({
   players,
   persistPlayers
@@ -1272,88 +2008,148 @@ function PlayersSection({
   const [name, setName] =
     useState("");
   const add = () => {
-    const t = name.trim();
-    if (!t) return;
+    const trimmed =
+      name.trim();
+    if (!trimmed) return;
     persistPlayers([
       ...players,
       {
         id: uid(),
-        name: t
+        name: trimmed
       }
     ]);
     setName("");
   };
-  const remove = (id) =>
+  const remove = (id) => {
+    if (
+      !confirm(
+        "Remove this player?"
+      )
+    ) {
+      return;
+    }
     persistPlayers(
       players.filter(
-        (p) => p.id !== id
+        (player) =>
+          player.id !== id
       )
     );
+  };
   return (
     <div className="space-y-2">
-      <div className="flex gap-2">
+      <div className="
+        flex
+        gap-2
+      ">
         <input
           value={name}
-          onChange={(e) =>
-            setName(e.target.value)
+          onChange={(event) =>
+            setName(
+              event.target.value
+            )
           }
-          onKeyDown={(e) =>
-            e.key === "Enter" &&
-            add()
-          }
+          onKeyDown={(event) => {
+            if (
+              event.key ===
+              "Enter"
+            ) {
+              add();
+            }
+          }}
           placeholder="Add a player"
-          className="flex-1 rounded-lg px-3 py-2 text-sm outline-none"
+          className="
+            flex-1
+            rounded-lg
+            px-3
+            py-2
+            text-sm
+            outline-none
+          "
           style={{
-            background: "#1E3327",
+            background:
+              "#1E3327",
             border:
               "1px solid rgba(255,255,255,0.08)",
-            color: "#F3EFE3"
+            color:
+              "#F3EFE3"
           }}
         />
         <button
           onClick={add}
-          className="rounded-lg px-3 flex items-center justify-center font-bold"
+          className="
+            rounded-lg
+            px-3
+            flex
+            items-center
+            justify-center
+            font-bold
+          "
           style={{
-            background: "#FF6B2C",
-            color: "#16241C"
+            background:
+              "#FF6B2C",
+            color:
+              "#16241C"
           }}
         >
           +
         </button>
       </div>
-      <div className="space-y-1.5">
+      <div className="
+        space-y-1.5
+      ">
         {players.length === 0 && (
           <EmptyState
-            text="No players yet — add your first one above."
+            text="
+              No players yet —
+              add your first one above.
+            "
           />
         )}
-        {players.map((p) => (
-          <div
-            key={p.id}
-            className="flex items-center justify-between rounded-lg px-3 py-2"
-            style={{
-              background: "#1E3327",
-              border:
-                "1px solid rgba(255,255,255,0.06)"
-            }}
-          >
-            <span className="text-sm font-medium">
-              {p.name}
-            </span>
-            <button
-              onClick={() =>
-                remove(p.id)
-              }
-              className="text-[#8FA391]"
+        {players.map(
+          (player) => (
+            <div
+              key={player.id}
+              className="
+                flex
+                items-center
+                justify-between
+                rounded-lg
+                px-3
+                py-2
+              "
+              style={{
+                background:
+                  "#1E3327",
+                border:
+                  "1px solid rgba(255,255,255,0.06)"
+              }}
             >
-              🗑
-            </button>
-          </div>
-        ))}
+              <span className="
+                text-sm
+                font-medium
+              ">
+                {player.name}
+              </span>
+              <button
+                onClick={() =>
+                  remove(player.id)
+                }
+                className="
+                  text-[#8FA391]
+                "
+              >
+                🗑
+              </button>
+            </div>
+          )
+        )}
       </div>
     </div>
   );
 }
+/* =========================================================
+   LOG MATCH
+   ========================================================= */
 function LogMatchSection({
   players,
   matches,
@@ -1373,79 +2169,100 @@ function LogMatchSection({
     useState("");
   const [error, setError] =
     useState("");
-  const cycle = (id) =>
-    setAssign((prev) => {
-      const cur = prev[id];
+  const cycle = (id) => {
+    setAssign((previous) => {
+      const current =
+        previous[id];
       const next =
-        cur === undefined
+        current === undefined
           ? "bibs"
-          : cur === "bibs"
+          : current === "bibs"
             ? "nonbibs"
             : undefined;
       const copy = {
-        ...prev
+        ...previous
       };
       if (
         next === undefined
-      )
+      ) {
         delete copy[id];
-      else
+      } else {
         copy[id] = next;
+      }
       return copy;
     });
+  };
   const bibsIds =
     players
       .filter(
-        (p) =>
-          assign[p.id] === "bibs"
+        (player) =>
+          assign[player.id] ===
+          "bibs"
       )
-      .map((p) => p.id);
+      .map(
+        (player) =>
+          player.id
+      );
   const nonBibsIds =
     players
       .filter(
-        (p) =>
-          assign[p.id] === "nonbibs"
+        (player) =>
+          assign[player.id] ===
+          "nonbibs"
       )
-      .map((p) => p.id);
+      .map(
+        (player) =>
+          player.id
+      );
   useEffect(() => {
     if (
       !bibsIds.includes(
         bibsCaptain
       )
-    )
+    ) {
       setBibsCaptain("");
+    }
     if (
       !nonBibsIds.includes(
         nonBibsCaptain
       )
-    )
+    ) {
       setNonBibsCaptain("");
-  }, [assign]);
+    }
+  }, [
+    assign
+  ]);
   const submit = () => {
     setError("");
     if (
       bibsIds.length === 0 ||
       nonBibsIds.length === 0
-    )
+    ) {
       return setError(
         "Assign at least one player to each side."
       );
+    }
     if (
       bibsScore === "" ||
       nonBibsScore === ""
-    )
+    ) {
       return setError(
         "Enter both scores."
       );
+    }
     const match = {
       id: uid(),
       date,
-      bibsPlayers: bibsIds,
-      nonBibsPlayers: nonBibsIds,
+      bibsPlayers:
+        bibsIds,
+      nonBibsPlayers:
+        nonBibsIds,
       bibsCaptain:
-        bibsCaptain || null,
+        bibsCaptain ||
+        null,
       nonBibsCaptain:
-        nonBibsCaptain || null,
+        nonBibsCaptain ||
+        null,
       bibsScore:
         Number(bibsScore),
       nonBibsScore:
@@ -1461,14 +2278,22 @@ function LogMatchSection({
     setBibsScore("");
     setNonBibsScore("");
   };
-  if (players.length === 0)
+  if (
+    players.length === 0
+  ) {
     return (
       <EmptyState
-        text="Add players first, then come back to log a match."
+        text="
+          Add players first,
+          then come back to log a match.
+        "
       />
     );
+  }
   return (
-    <div className="space-y-4">
+    <div className="
+      space-y-4
+    ">
       <div>
         <FieldLabel>
           Date
@@ -1476,97 +2301,159 @@ function LogMatchSection({
         <input
           type="date"
           value={date}
-          onChange={(e) =>
-            setDate(e.target.value)
+          onChange={(event) =>
+            setDate(
+              event.target.value
+            )
           }
-          className="w-full rounded-lg px-3 py-2 text-sm outline-none font-mono"
+          className="
+            w-full
+            rounded-lg
+            px-3
+            py-2
+            text-sm
+            outline-none
+            font-mono
+          "
           style={{
-            background: "#1E3327",
+            background:
+              "#1E3327",
             border:
               "1px solid rgba(255,255,255,0.08)",
-            color: "#F3EFE3"
+            color:
+              "#F3EFE3"
           }}
         />
       </div>
       <div>
         <FieldLabel>
-          Tap a player to assign — Bibs, then Non-bibs
+          Tap a player to assign —
+          Bibs, then Non-bibs
         </FieldLabel>
-        <div className="flex flex-wrap gap-1.5 mt-1.5">
-          {players.map((p) => {
-            const state =
-              assign[p.id];
-            const style =
-              state === "bibs"
-                ? {
-                    background:
-                      "#FF6B2C",
-                    color:
-                      "#16241C"
-                  }
-                : state === "nonbibs"
+        <div className="
+          flex
+          flex-wrap
+          gap-1.5
+          mt-1.5
+        ">
+          {players.map(
+            (player) => {
+              const state =
+                assign[
+                  player.id
+                ];
+              const style =
+                state === "bibs"
                   ? {
                       background:
-                        "#D8D3C4",
+                        "#FF6B2C",
                       color:
                         "#16241C"
                     }
-                  : {
-                      background:
-                        "#1E3327",
-                      color:
-                        "#8FA391",
-                      border:
-                        "1px solid rgba(255,255,255,0.1)"
-                    };
-            return (
-              <button
-                key={p.id}
-                onClick={() =>
-                  cycle(p.id)
-                }
-                className="px-3 py-1.5 rounded-full text-xs font-semibold"
-                style={style}
-              >
-                {p.name}
-              </button>
-            );
-          })}
+                  : state === "nonbibs"
+                    ? {
+                        background:
+                          "#D8D3C4",
+                        color:
+                          "#16241C"
+                      }
+                    : {
+                        background:
+                          "#1E3327",
+                        color:
+                          "#8FA391",
+                        border:
+                          "1px solid rgba(255,255,255,0.1)"
+                      };
+              return (
+                <button
+                  key={player.id}
+                  onClick={() =>
+                    cycle(
+                      player.id
+                    )
+                  }
+                  className="
+                    px-3
+                    py-1.5
+                    rounded-full
+                    text-xs
+                    font-semibold
+                  "
+                  style={style}
+                >
+                  {player.name}
+                </button>
+              );
+            }
+          )}
         </div>
       </div>
-      <div className="grid grid-cols-2 gap-3">
+      <div className="
+        grid
+        grid-cols-2
+        gap-3
+      ">
         <TeamPanel
           label="Bibs"
           color="#FF6B2C"
           ids={bibsIds}
           players={players}
-          captain={bibsCaptain}
-          setCaptain={setBibsCaptain}
-          score={bibsScore}
-          setScore={setBibsScore}
+          captain={
+            bibsCaptain
+          }
+          setCaptain={
+            setBibsCaptain
+          }
+          score={
+            bibsScore
+          }
+          setScore={
+            setBibsScore
+          }
         />
         <TeamPanel
           label="Non-bibs"
           color="#D8D3C4"
           ids={nonBibsIds}
           players={players}
-          captain={nonBibsCaptain}
-          setCaptain={setNonBibsCaptain}
-          score={nonBibsScore}
-          setScore={setNonBibsScore}
+          captain={
+            nonBibsCaptain
+          }
+          setCaptain={
+            setNonBibsCaptain
+          }
+          score={
+            nonBibsScore
+          }
+          setScore={
+            setNonBibsScore
+          }
         />
       </div>
       {error && (
-        <p className="text-[#E8836A] text-xs font-medium">
+        <p className="
+          text-[#E8836A]
+          text-xs
+          font-medium
+        ">
           {error}
         </p>
       )}
       <button
         onClick={submit}
-        className="w-full rounded-lg py-3 text-sm font-bold"
+        className="
+          w-full
+          rounded-lg
+          py-3
+          text-sm
+          font-bold
+        "
         style={{
-          background: "#FF6B2C",
-          color: "#16241C"
+          background:
+            "#FF6B2C",
+          color:
+            "#16241C"
         }}
       >
         + Save match
@@ -1574,6 +2461,9 @@ function LogMatchSection({
     </div>
   );
 }
+/* =========================================================
+   TEAM PANEL
+   ========================================================= */
 function TeamPanel({
   label,
   color,
@@ -1586,94 +2476,168 @@ function TeamPanel({
 }) {
   const names =
     players.filter(
-      (p) => ids.includes(p.id)
+      (player) =>
+        ids.includes(
+          player.id
+        )
     );
   return (
     <div
       style={{
-        background: "#1E3327",
+        background:
+          "#1E3327",
         border:
           "1px solid rgba(255,255,255,0.06)"
       }}
-      className="rounded-xl p-3 space-y-2"
+      className="
+        rounded-xl
+        p-3
+        space-y-2
+      "
     >
-      <div className="flex items-center gap-1.5">
+      <div className="
+        flex
+        items-center
+        gap-1.5
+      ">
         <span
-          className="w-2 h-2 rounded-full"
+          className="
+            w-2
+            h-2
+            rounded-full
+          "
           style={{
-            background: color
+            background:
+              color
           }}
         />
-        <span className="text-xs font-bold uppercase tracking-wide">
+        <span className="
+          text-xs
+          font-bold
+          uppercase
+          tracking-wide
+        ">
           {label}
         </span>
-        <span className="text-[10px] text-[#8FA391] font-mono ml-auto">
+        <span className="
+          text-[10px]
+          text-[#8FA391]
+          font-mono
+          ml-auto
+        ">
           {ids.length}
         </span>
       </div>
       <input
         type="number"
         inputMode="numeric"
+        min="0"
         placeholder="Score"
         value={score}
-        onChange={(e) =>
-          setScore(e.target.value)
+        onChange={(event) =>
+          setScore(
+            event.target.value
+          )
         }
-        className="w-full rounded-lg px-2 py-2 text-center text-lg font-mono outline-none"
+        className="
+          w-full
+          rounded-lg
+          px-2
+          py-2
+          text-center
+          text-lg
+          font-mono
+          outline-none
+        "
         style={{
-          background: "#16241C",
+          background:
+            "#16241C",
           border:
             "1px solid rgba(255,255,255,0.08)",
-          color: "#F3EFE3"
+          color:
+            "#F3EFE3"
         }}
       />
       <select
         value={captain}
-        onChange={(e) =>
-          setCaptain(e.target.value)
+        onChange={(event) =>
+          setCaptain(
+            event.target.value
+          )
         }
-        disabled={names.length === 0}
-        className="w-full rounded-lg px-2 py-2 text-xs outline-none"
+        disabled={
+          names.length === 0
+        }
+        className="
+          w-full
+          rounded-lg
+          px-2
+          py-2
+          text-xs
+          outline-none
+        "
         style={{
-          background: "#16241C",
+          background:
+            "#16241C",
           border:
             "1px solid rgba(255,255,255,0.08)",
-          color: "#F3EFE3"
+          color:
+            "#F3EFE3"
         }}
       >
         <option value="">
           Captain…
         </option>
-        {names.map((p) => (
-          <option
-            key={p.id}
-            value={p.id}
-          >
-            {p.name}
-          </option>
-        ))}
+        {names.map(
+          (player) => (
+            <option
+              key={player.id}
+              value={player.id}
+            >
+              {player.name}
+            </option>
+          )
+        )}
       </select>
     </div>
   );
 }
+/* =========================================================
+   FIELD LABEL
+   ========================================================= */
 function FieldLabel({
   children
 }) {
   return (
-    <p className="text-[10px] uppercase tracking-widest text-[#8FA391] font-mono mb-1">
+    <p className="
+      text-[10px]
+      uppercase
+      tracking-widest
+      text-[#8FA391]
+      font-mono
+      mb-1
+    ">
       {children}
     </p>
   );
 }
+/* =========================================================
+   HISTORY
+   ========================================================= */
 function HistorySection({
   players,
   matches,
   persistMatches
 }) {
-  const nameOf = (id) =>
-    players.find(
-      (p) => p.id === id
-    )?.name || "?";
+  const nameOf = (id) => {
+    const player =
+      players.find(
+        (p) =>
+          p.id === id
+      );
+    return player?.name ||
+      "?";
+  };
   const sorted =
     [...matches].sort(
       (a, b) =>
@@ -1681,90 +2645,176 @@ function HistorySection({
           a.date
         )
     );
-  const remove = (id) =>
+  const remove = (id) => {
+    if (
+      !confirm(
+        "Delete this match?"
+      )
+    ) {
+      return;
+    }
     persistMatches(
       matches.filter(
-        (m) => m.id !== id
+        (match) =>
+          match.id !== id
       )
     );
-  if (sorted.length === 0)
+  };
+  if (
+    sorted.length === 0
+  ) {
     return (
       <EmptyState
-        text="No matches logged yet."
+        text="
+          No matches logged yet.
+        "
       />
     );
+  }
   return (
-    <div className="space-y-2">
-      {sorted.map((m) => (
-        <div
-          key={m.id}
-          style={{
-            background: "#1E3327",
-            border:
-              "1px solid rgba(255,255,255,0.06)"
-          }}
-          className="rounded-xl p-3"
-        >
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-[10px] font-mono text-[#8FA391]">
-              📅 {m.date}
-            </span>
-            <button
-              onClick={() =>
-                remove(m.id)
-              }
-              className="text-[#8FA391]"
-            >
-              ✕
-            </button>
-          </div>
-          <div className="flex items-center justify-between text-sm">
-            <div className="flex-1">
-              <p className="text-[#FF6B2C] text-[10px] font-bold uppercase">
-                Bibs
-              </p>
-              <p className="text-xs leading-relaxed">
-                {m.bibsPlayers
-                  .map(
-                    (id) =>
-                      id ===
-                      m.bibsCaptain
-                        ? `👑${nameOf(id)}`
-                        : nameOf(id)
+    <div className="
+      space-y-2
+    ">
+      {sorted.map(
+        (match) => (
+          <div
+            key={match.id}
+            style={{
+              background:
+                "#1E3327",
+              border:
+                "1px solid rgba(255,255,255,0.06)"
+            }}
+            className="
+              rounded-xl
+              p-3
+            "
+          >
+            <div className="
+              flex
+              items-center
+              justify-between
+              mb-2
+            ">
+              <span className="
+                text-[10px]
+                font-mono
+                text-[#8FA391]
+              ">
+                📅 {match.date}
+              </span>
+              <button
+                onClick={() =>
+                  remove(
+                    match.id
                   )
-                  .join(", ")}
-              </p>
+                }
+                className="
+                  text-[#8FA391]
+                "
+              >
+                ✕
+              </button>
             </div>
-            <div className="px-3 font-bold text-lg font-display">
-              {m.bibsScore}–{m.nonBibsScore}
-            </div>
-            <div className="flex-1 text-right">
-              <p className="text-[#D8D3C4] text-[10px] font-bold uppercase">
-                Non-bibs
-              </p>
-              <p className="text-xs leading-relaxed">
-                {m.nonBibsPlayers
-                  .map(
-                    (id) =>
-                      id ===
-                      m.nonBibsCaptain
-                        ? `👑${nameOf(id)}`
-                        : nameOf(id)
-                  )
-                  .join(", ")}
-              </p>
+            <div className="
+              flex
+              items-center
+              justify-between
+              text-sm
+            ">
+              <div className="
+                flex-1
+              ">
+                <p className="
+                  text-[#FF6B2C]
+                  text-[10px]
+                  font-bold
+                  uppercase
+                ">
+                  Bibs
+                </p>
+                <p className="
+                  text-xs
+                  leading-relaxed
+                ">
+                  {(match.bibsPlayers || [])
+                    .map(
+                      (id) =>
+                        id ===
+                        match.bibsCaptain
+                          ? `👑${nameOf(id)}`
+                          : nameOf(id)
+                    )
+                    .join(", ")}
+                </p>
+              </div>
+              <div className="
+                px-3
+                font-bold
+                text-lg
+                font-display
+              ">
+                {match.bibsScore}
+                –
+                {match.nonBibsScore}
+              </div>
+              <div className="
+                flex-1
+                text-right
+              ">
+                <p className="
+                  text-[#D8D3C4]
+                  text-[10px]
+                  font-bold
+                  uppercase
+                ">
+                  Non-bibs
+                </p>
+                <p className="
+                  text-xs
+                  leading-relaxed
+                ">
+                  {(match.nonBibsPlayers || [])
+                    .map(
+                      (id) =>
+                        id ===
+                        match.nonBibsCaptain
+                          ? `👑${nameOf(id)}`
+                          : nameOf(id)
+                    )
+                    .join(", ")}
+                </p>
+              </div>
             </div>
           </div>
-        </div>
-      ))}
+        )
+      )}
     </div>
   );
 }
-ReactDOM
-  .createRoot(
-    document.getElementById("root")
-  )
-  .render(<App />);
+/* =========================================================
+   START APP
+   ========================================================= */
+try {
+  ReactDOM
+    .createRoot(
+      document.getElementById(
+        "root"
+      )
+    )
+    .render(
+      <App />
+    );
+} catch (error) {
+  console.error(
+    "React startup error:",
+    error
+  );
+  showError(
+    error?.message ||
+    String(error)
+  );
+}
 </script>
 </body>
 </html>
